@@ -84,8 +84,13 @@ export function BookingForm() {
     form.setValue('time_slot', timeSlot);
   };
 
-  // Set minimum date to today
-  const today = new Date().toISOString().split('T')[0];
+  // Set date restrictions to only allow today and tomorrow
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const minDate = today.toISOString().split('T')[0];
+  const maxDate = tomorrow.toISOString().split('T')[0];
 
   return (
     <Card>
@@ -126,7 +131,8 @@ export function BookingForm() {
               <Input
                 id="booking_date"
                 type="date"
-                min={today}
+                min={minDate}
+                max={maxDate}
                 {...form.register('booking_date')}
                 onChange={(e) => {
                   form.setValue('booking_date', e.target.value);

@@ -56,7 +56,23 @@ export function TimeslotSelector({
     );
   }
 
-  const availableSlots = data?.available_slots || [];
+  let availableSlots = data?.available_slots || [];
+
+  // Filter out past time slots if the selected date is today
+  const now = new Date();
+  const selectedDate = new Date(date);
+  
+  if (selectedDate.toDateString() === now.toDateString()) {
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+    
+    availableSlots = availableSlots.filter(slot => {
+      const [hours, minutes] = slot.split(':').map(Number);
+      if (hours < currentHour) return false;
+      if (hours === currentHour && minutes <= currentMinutes) return false;
+      return true;
+    });
+  }
 
   if (availableSlots.length === 0) {
     return (

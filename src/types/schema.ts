@@ -76,7 +76,7 @@ export interface Booking {
   sport: SportType;
   booking_date: string;
   time_slot: string;
-  status: 'confirmed' | 'cancelled' | 'completed';
+  status: BookingStatus;
   notes?: string;
   created_at: string;
   updated_at: string;

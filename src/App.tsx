@@ -23,27 +23,29 @@ function Router() {
   const isAuthenticated = authService.isAuthenticated();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/book-sport">
-          <ProtectedRoute>
-            <BookingPage />
-          </ProtectedRoute>
-        </Route>
-        <Route path="/bookings">
-          <ProtectedRoute>
-            <BookingsListPage />
-          </ProtectedRoute>
-        </Route>
-        <Route path="/profile">
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        </Route>
-        <Route component={NotFound} />
-      </Switch>
+      <main className="container mx-auto px-4 py-8">
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/book-sport">
+            <ProtectedRoute>
+              <BookingPage />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/bookings">
+            <ProtectedRoute>
+              <BookingsListPage />
+            </ProtectedRoute>
+          </Route>
+          <Route path="/profile">
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </main>
     </div>
   );
 }
@@ -52,8 +54,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <div className="dark">
+          <Toaster />
+          <Router />
+        </div>
       </TooltipProvider>
     </QueryClientProvider>
   );

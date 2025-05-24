@@ -3,35 +3,47 @@ import { authService } from '@/lib/auth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Zap, Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { format } from 'date-fns';
-import { sports } from '@/lib/constants';
+import { sports, statusColors, sportIcons } from '@/lib/constants';
 import api from '@/lib/api';
 import type { Booking } from '@/types/schema';
 
 export function ActiveBookingCard() {
   const [, setLocation] = useLocation();
   
-  const { data: activeBooking, isLoading } = useQuery<Booking>({
-    queryKey: ['/api/bookings/current'],
+  const { data: bookings = [], isLoading } = useQuery<Booking[]>({
+    queryKey: ['/api/bookings/'],
     queryFn: async () => {
-      const response = await api.get<Booking>('/api/bookings/current/');
+      const response = await api.get<Booking[]>('/bookings/');
       return response.data;
     },
     enabled: authService.isAuthenticated(),
   });
 
+  // Filter bookings for today
+  const today = new Date();
+  const todayString = today.toISOString().split('T')[0];
+  const todaysBookings = bookings.filter(booking => 
+    booking.booking_date === todayString && 
+    booking.status === 'CONFIRMED'
+  );
+
   if (isLoading) {
     return (
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Current Booking</h2>
+        <h2 className="text-2xl font-bold text-white mb-4">Today's Bookings</h2>
         <Card>
           <CardContent className="p-6">
-            <div className="animate-pulse">
-              <div className="h-16 bg-gray-200 rounded mb-4"></div>
-              <div className="h-4 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="space-y-4">
+              {[1, 2].map(i => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-16 bg-muted rounded mb-4"></div>
+                  <div className="h-4 bg-muted rounded mb-2"></div>
+                  <div className="h-4 bg-muted rounded w-1/2"></div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -41,6 +53,10 @@ export function ActiveBookingCard() {
 
   const getSportLabel = (sportValue: string) => {
     return sports.find(s => s.value === sportValue)?.label || sportValue;
+  };
+
+  const getSportIcon = (sport: string) => {
+    return sportIcons[sport as keyof typeof sportIcons] || '🏃';
   };
 
   const formatBookingDateTime = (date: string, timeSlot: string) => {
@@ -69,47 +85,53 @@ export function ActiveBookingCard() {
       return `${dateLabel}, ${timeSlot}`;
     } catch (error) {
       console.error('Error formatting date:', error);
-      return `${date}, ${timeSlot}`; // Fallback to raw date
+      return '';
     }
   };
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Current Booking</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-foreground">Today's Bookings</h2>
+        <Button onClick={() => setLocation('/book-sport')}>
+          Book a Sport
+        </Button>
+      </div>
       
-      {activeBooking ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-success-50 rounded-xl flex items-center justify-center">
-                  <Zap className="w-8 h-8 text-success" />
+      {todaysBookings.length > 0 ? (
+        <div className="space-y-4">
+          {todaysBookings.map((booking) => (
+            <Card key={booking.id}>
+              <CardContent className="p-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
+                    {getSportIcon(booking.sport)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {getSportLabel(booking.sport)}
+                      </h3>
+                      <Badge 
+                        className={statusColors[booking.status as keyof typeof statusColors]}
+                      >
+                        {booking.status}
+                      </Badge>
+                    </div>
+                    <p className="text-muted-foreground mt-1">
+                      {format(new Date(booking.booking_date), 'MMMM dd, yyyy')} • {booking.time_slot}
+                    </p>
+                    {booking.notes && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {booking.notes}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {getSportLabel(activeBooking.sport)}
-                  </h3>
-                  <p className="text-gray-600">
-                    {formatBookingDateTime(activeBooking.booking_date, activeBooking.time_slot)}
-                  </p>
-                  <Badge className="mt-2 bg-success-100 text-success-800 hover:bg-success-100">
-                    Active
-                  </Badge>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Booking ID</p>
-                <p className="font-mono text-sm">#{activeBooking.id.toString().padStart(3, '0')}</p>
-              </div>
-            </div>
-            
-            {activeBooking.notes && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-600">{activeBooking.notes}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       ) : (
         <Card>
           <CardContent className="p-8 text-center">

@@ -45,7 +45,7 @@ export function Header() {
 
   return (
     <>
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-base-200 border-b border-base-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -66,7 +66,7 @@ export function Header() {
                       className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         location === item.href
                           ? 'text-primary'
-                          : 'text-gray-700 hover:text-primary'
+                          : 'text-text-secondary hover:text-primary'
                       }`}
                     >
                       {item.label}

@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { authService } from '@/lib/auth';
+import api from '@/lib/api';
+import { HomePage } from './HomePage';
 import { ActiveBookingCard } from '@/components/booking/ActiveBookingCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,11 +14,26 @@ import type { Booking } from '@shared/schema';
 
 export function Dashboard() {
   const [, setLocation] = useLocation();
+  const isAuthenticated = authService.isAuthenticated();
+
+  if (!isAuthenticated) {
+    return <HomePage />;
+  }
   
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading } = useQuery<Booking[]>({
     queryKey: ['/api/bookings/'],
+    queryFn: async () => {
+      const response = await api.get<Booking[] | { data: Booking[] }>('/bookings/');
+      console.log('Raw API response:', response);
+      console.log('Response data type:', typeof response.data);
+      console.log('Response data:', response.data);
+      // If response.data is already the array, use it directly
+      return 'data' in response.data ? response.data.data : response.data;
+    },
     enabled: authService.isAuthenticated(),
   });
+
+  console.log('All bookings:', bookings);
 
   const getSportLabel = (sportValue: string) => {
     return sports.find(s => s.value === sportValue)?.label || sportValue;
@@ -36,9 +53,46 @@ export function Dashboard() {
   };
 
   // Calculate statistics
-  const totalBookings = bookings.length;
-  const completedBookings = bookings.filter((b: Booking) => b.status === 'completed').length;
-  const upcomingBookings = bookings.filter((b: Booking) => b.status === 'active').length;
+  const totalBookings = bookings?.length ?? 0;
+  console.log('Total bookings:', totalBookings);
+
+  const completedBookings = bookings?.filter((b) => {
+    const isCompleted = b.status?.toUpperCase() === 'COMPLETED';
+    console.log('Checking completed booking:', {
+      status: b.status,
+      upperStatus: b.status?.toUpperCase(),
+      isCompleted
+    });
+    return isCompleted;
+  }).length ?? 0;
+  console.log('Completed bookings:', completedBookings);
+
+  const upcomingBookings = bookings?.filter((b) => {
+    const isConfirmed = b.status?.toUpperCase() === 'CONFIRMED';
+    if (!isConfirmed) {
+      console.log('Booking not confirmed:', {
+        status: b.status,
+        upperStatus: b.status?.toUpperCase()
+      });
+      return false;
+    }
+
+    const bookingDate = new Date(b.booking_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isUpcoming = bookingDate >= today;
+
+    console.log('Checking upcoming booking:', {
+      date: b.booking_date,
+      bookingDate,
+      today,
+      isUpcoming
+    });
+    return isUpcoming;
+  }).length ?? 0;
+  console.log('Upcoming bookings:', upcomingBookings);
+
+  console.log('Stats:', { totalBookings, completedBookings, upcomingBookings }); // Debug log
 
   // Get recent bookings (last 3)
   const recentBookings = bookings.slice(0, 3);
@@ -69,12 +123,12 @@ export function Dashboard() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-primary" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{totalBookings}</p>
+                <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
+                <p className="text-2xl font-bold text-foreground">{totalBookings}</p>
               </div>
             </div>
           </CardContent>
@@ -83,12 +137,12 @@ export function Dashboard() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-success-50 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-success/20 rounded-lg flex items-center justify-center">
                 <CheckCircle className="w-6 h-6 text-success" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{completedBookings}</p>
+                <p className="text-sm font-medium text-muted-foreground">Completed</p>
+                <p className="text-2xl font-bold text-foreground">{completedBookings}</p>
               </div>
             </div>
           </CardContent>
@@ -97,12 +151,12 @@ export function Dashboard() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
-                <Clock className="w-6 h-6 text-orange-500" />
+              <div className="w-12 h-12 bg-warning/20 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-warning" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Upcoming</p>
-                <p className="text-2xl font-bold text-gray-900">{upcomingBookings}</p>
+                <p className="text-sm font-medium text-muted-foreground">Upcoming</p>
+                <p className="text-2xl font-bold text-foreground">{upcomingBookings}</p>
               </div>
             </div>
           </CardContent>
@@ -113,7 +167,7 @@ export function Dashboard() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Bookings</h3>
+            <h3 className="text-lg font-semibold text-foreground">Recent Bookings</h3>
             <Button 
               variant="link" 
               className="p-0"
@@ -133,26 +187,26 @@ export function Dashboard() {
             </div>
           ) : recentBookings.length === 0 ? (
             <div className="text-center py-8">
-              <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">No bookings yet</p>
+              <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">No bookings yet</p>
               <Button onClick={() => setLocation('/book-sport')}>
                 Create Your First Booking
               </Button>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
               {recentBookings.map((booking: Booking) => (
-                <div key={booking.id} className="py-4 hover:bg-gray-50 transition-colors">
+                <div key={booking.id} className="py-4 hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
                         {getSportIcon(booking.sport)}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {getSportLabel(booking.sport)}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           {format(new Date(booking.booking_date), 'MMM dd, yyyy')} • {booking.time_slot}
                         </p>
                       </div>

@@ -19,9 +19,9 @@ export function BookingList() {
   const [dateToFilter, setDateToFilter] = useState<string>('');
 
   const { data: bookings = [], isLoading } = useQuery<Booking[]>({
-    queryKey: ['/api/bookings/my_booking'],
+    queryKey: ['/api/bookings/'],
     queryFn: async () => {
-      const response = await api.get<Booking[]>('/api/bookings/my_booking/');
+      const response = await api.get<Booking[]>('/bookings/');
       return response.data;
     },
     enabled: authService.isAuthenticated(),
@@ -102,9 +102,9 @@ export function BookingList() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="CONFIRMED">Active</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
             </div>

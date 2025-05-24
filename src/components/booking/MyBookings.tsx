@@ -54,7 +54,7 @@ export function MyBookings() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">My Bookings</h2>
+      <h2 className="text-2xl font-bold text-foreground">My Bookings</h2>
       {bookings.map((booking: Booking) => (
         <Card key={booking.id}>
           <CardHeader>

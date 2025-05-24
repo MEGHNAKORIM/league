@@ -73,7 +73,7 @@ export function LoginModal({ open, onOpenChange, onSwitchToRegister }: LoginModa
           <DialogTitle className="text-center text-2xl font-bold">
             Welcome Back
           </DialogTitle>
-          <p className="text-center text-gray-600">
+          <p className="text-center text-muted-foreground">
             Sign in to your account to continue
           </p>
         </DialogHeader>
@@ -132,12 +132,12 @@ export function LoginModal({ open, onOpenChange, onSwitchToRegister }: LoginModa
         </form>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Button
               type="button"
               variant="link"
-              className="p-0 h-auto font-medium"
+              className="p-0 h-auto font-medium text-primary"
               onClick={onSwitchToRegister}
             >
               Sign up

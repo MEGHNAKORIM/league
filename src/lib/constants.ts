@@ -5,9 +5,10 @@ export const branches = BRANCH_CHOICES;
 export const courses = COURSE_CHOICES;
 
 export const statusColors = {
-  active: 'bg-orange-100 text-orange-800',
-  completed: 'bg-success-100 text-success-800',
-  cancelled: 'bg-red-100 text-red-800',
+  PENDING: 'bg-orange-100 text-orange-800',
+  CONFIRMED: 'bg-blue-100 text-blue-800',
+  COMPLETED: 'bg-success-100 text-success-800',
+  CANCELLED: 'bg-red-100 text-red-800',
 } as const;
 
 export const sportIcons = {
